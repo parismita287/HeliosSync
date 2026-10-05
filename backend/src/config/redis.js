@@ -1,20 +1,100 @@
 const { createClient } = require("redis");
 
+const configuredRedisUrl =
+    process.env.REDIS_URL;
 
-// ============================================
-// HeliosSync Redis Configuration
-// ============================================
+let redisUrl =
+    "redis://127.0.0.1:6379";
 
-const redisClient = createClient({
-    url:
-        process.env.REDIS_URL ||
-        "redis://127.0.0.1:6379"
-});
+/*
+============================================================
+REDIS URL VALIDATION
+============================================================
 
+Render may not have Redis configured yet.
 
-// ============================================
-// Redis Error Handler
-// ============================================
+If REDIS_URL is missing or invalid, we fall back
+to the local Redis URL instead of crashing the
+entire HeliosSync backend.
+============================================================
+*/
+
+if (configuredRedisUrl) {
+
+    try {
+
+        const parsedUrl =
+            new URL(
+                configuredRedisUrl
+            );
+
+        if (
+            parsedUrl.protocol ===
+                "redis:" ||
+            parsedUrl.protocol ===
+                "rediss:"
+        ) {
+
+            redisUrl =
+                configuredRedisUrl;
+
+        } else {
+
+            console.warn(
+                "⚠️ Invalid REDIS_URL protocol."
+            );
+
+            console.warn(
+                "⚠️ Expected redis:// or rediss://"
+            );
+
+            console.warn(
+                "⚠️ Falling back to local Redis."
+            );
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "⚠️ Invalid REDIS_URL detected."
+        );
+
+        console.warn(
+            "⚠️ Falling back to local Redis."
+        );
+
+    }
+
+} else {
+
+    console.log(
+        "ℹ️ REDIS_URL is not configured."
+    );
+
+    console.log(
+        "ℹ️ Using local Redis configuration."
+    );
+
+}
+
+/*
+============================================================
+CREATE REDIS CLIENT
+============================================================
+*/
+
+const redisClient =
+    createClient({
+        url:
+            redisUrl
+    });
+
+/*
+============================================================
+REDIS EVENTS
+============================================================
+*/
 
 redisClient.on(
     "error",
@@ -28,11 +108,6 @@ redisClient.on(
     }
 );
 
-
-// ============================================
-// Redis Connecting
-// ============================================
-
 redisClient.on(
     "connect",
     () => {
@@ -43,11 +118,6 @@ redisClient.on(
 
     }
 );
-
-
-// ============================================
-// Redis Ready
-// ============================================
 
 redisClient.on(
     "ready",
@@ -60,88 +130,88 @@ redisClient.on(
     }
 );
 
-
-// ============================================
-// Redis Reconnecting
-// ============================================
-
 redisClient.on(
     "reconnecting",
     () => {
 
         console.log(
-            "🔄 Redis reconnecting..."
+            "🔄 Redis reconnecting!"
         );
 
     }
 );
 
+/*
+============================================================
+CONNECT REDIS
+============================================================
+*/
 
-// ============================================
-// Connect Redis
-// ============================================
+const connectRedis =
+    async () => {
 
-const connectRedis = async () => {
+        try {
 
-    try {
+            if (
+                !redisClient.isOpen
+            ) {
 
-        if (
-            !redisClient.isOpen
-        ) {
+                await redisClient.connect();
 
-            await redisClient.connect();
+            }
+
+        } catch (error) {
+
+            console.error(
+                "❌ Redis connection failed:",
+                error.message
+            );
+
+            throw error;
 
         }
 
-    } catch (error) {
+    };
 
-        console.error(
-            "❌ Redis connection failed:",
-            error.message
-        );
+/*
+============================================================
+DISCONNECT REDIS
+============================================================
+*/
 
-        throw error;
+const disconnectRedis =
+    async () => {
 
-    }
+        try {
 
-};
+            if (
+                redisClient.isOpen
+            ) {
 
+                await redisClient.quit();
 
-// ============================================
-// Disconnect Redis
-// ============================================
+                console.log(
+                    "Redis connection closed."
+                );
 
-const disconnectRedis = async () => {
+            }
 
-    try {
+        } catch (error) {
 
-        if (
-            redisClient.isOpen
-        ) {
-
-            await redisClient.quit();
-
-            console.log(
-                "Redis connection closed."
+            console.error(
+                "Redis disconnect error:",
+                error.message
             );
 
         }
 
-    } catch (error) {
+    };
 
-        console.error(
-            "Redis disconnect error:",
-            error.message
-        );
-
-    }
-
-};
-
-
-// ============================================
-// Export
-// ============================================
+/*
+============================================================
+EXPORTS
+============================================================
+*/
 
 module.exports = {
 
