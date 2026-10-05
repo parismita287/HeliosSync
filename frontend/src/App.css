@@ -1,0 +1,302 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #172033;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* HEADER */
+
+.header {
+  background: white;
+  padding: 25px 40px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.header h1 {
+  font-size: 32px;
+}
+
+.header p {
+  margin-top: 6px;
+  color: #667085;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-weight: bold;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+
+  background: #22c55e;
+
+  border-radius: 50%;
+}
+
+/* ERROR */
+
+.error {
+  margin: 20px 40px;
+  padding: 15px;
+
+  background: #fee2e2;
+  color: #991b1b;
+
+  border-radius: 8px;
+}
+
+/* SENSOR CARDS */
+
+.cards {
+  padding: 30px 40px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 20px;
+}
+
+.card {
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0, 0, 0, 0.06);
+}
+
+.card-icon {
+  font-size: 35px;
+}
+
+.card h3 {
+  color: #667085;
+
+  font-size: 15px;
+
+  margin-bottom: 8px;
+}
+
+.card strong {
+  font-size: 28px;
+}
+
+/* CHARTS */
+
+.charts {
+  padding: 0 40px 30px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 20px;
+}
+
+.chart-card {
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0, 0, 0, 0.06);
+}
+
+.chart-card h2 {
+  margin-bottom: 20px;
+}
+
+/* OPTIMIZATION */
+
+.optimization {
+  margin: 0 40px 30px;
+
+  background: white;
+
+  padding: 30px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0, 0, 0, 0.06);
+}
+
+.optimization h2 {
+  margin-bottom: 10px;
+}
+
+.optimization p {
+  color: #667085;
+
+  margin-bottom: 20px;
+}
+
+.optimization button {
+  border: none;
+
+  padding: 12px 20px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 15px;
+
+  font-weight: bold;
+
+  background: #172033;
+  color: white;
+}
+
+.optimization button:hover {
+  opacity: 0.85;
+}
+
+.optimization button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* OPTIMIZATION RESULT */
+
+.optimization-result {
+  margin-top: 25px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 15px;
+}
+
+.optimization-result div {
+  background: #f4f7fb;
+
+  padding: 18px;
+
+  border-radius: 10px;
+}
+
+.optimization-result span {
+  display: block;
+
+  color: #667085;
+
+  margin-bottom: 8px;
+}
+
+.optimization-result strong {
+  font-size: 20px;
+}
+
+/* FOOTER */
+
+footer {
+  text-align: center;
+
+  padding: 30px;
+
+  color: #667085;
+}
+
+/* LOADING */
+
+.loading {
+  height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+}
+
+.loading h1 {
+  margin-bottom: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .charts {
+    grid-template-columns: 1fr;
+  }
+
+  .optimization-result {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .header {
+    padding: 20px;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 15px;
+  }
+
+  .cards {
+    padding: 20px;
+
+    grid-template-columns: 1fr;
+  }
+
+  .charts {
+    padding: 0 20px 20px;
+  }
+
+  .optimization {
+    margin: 0 20px 20px;
+  }
+
+  .optimization-result {
+    grid-template-columns: 1fr;
+  }
+}
