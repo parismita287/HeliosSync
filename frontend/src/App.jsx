@@ -11,7 +11,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:5000";
+
+const WS_BASE =
+  API_BASE.replace(/^http/, "ws");
 
 const BATTERY_CAPACITY_KWH = 10;
 
@@ -849,7 +854,7 @@ function App() {
 
       ws =
         new WebSocket(
-          "ws://localhost:5000"
+          WS_BASE
         );
 
 
@@ -2239,44 +2244,7 @@ function App() {
   if (authChecking) {
 
     return (
-      <div className="helios-glow" style={styles.authPage}><style>{`
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
-* { box-sizing: border-box; }
-html, body, #root { margin: 0; min-height: 100%; background: #050b16; }
-body { font-family: "Manrope", sans-serif; overflow-x: hidden; }
-button, input { font-family: inherit; }
-.helios-glow { position: relative; overflow: hidden; }
-.helios-glow::before { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; background: radial-gradient(circle, rgba(34,211,238,.16), transparent 68%); top: -180px; right: -120px; pointer-events: none; animation: heliosFloat 8s ease-in-out infinite; }
-.helios-glow::after { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,.12), transparent 68%); bottom: -180px; left: -120px; pointer-events: none; animation: heliosFloat 10s ease-in-out infinite reverse; }
-@keyframes heliosFloat { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(20px,18px,0) scale(1.08); } }
-@keyframes heliosPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,.35); } 50% { box-shadow: 0 0 0 9px rgba(34,211,238,0); } }
-@keyframes heliosRise { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
-@keyframes heliosShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-.helios-app { position: relative; min-height: 100vh; isolation: isolate; overflow: hidden; }
-.helios-app::before { content: ""; position: fixed; inset: 0; z-index: -3; pointer-events: none; background: radial-gradient(circle at 15% 20%, rgba(34,211,238,.12), transparent 26%), radial-gradient(circle at 82% 12%, rgba(59,130,246,.12), transparent 24%), radial-gradient(circle at 55% 85%, rgba(16,185,129,.07), transparent 28%), #050c16; animation: heliosBgShift 14s ease-in-out infinite alternate; }
-.helios-app::after { content: ""; position: fixed; inset: -30%; z-index: -2; pointer-events: none; opacity: .28; background-image: linear-gradient(rgba(72,211,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(72,211,255,.10) 1px, transparent 1px); background-size: 56px 56px; transform: perspective(700px) rotateX(62deg) translateY(18%); transform-origin: center; animation: heliosGrid 18s linear infinite; mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 75%, transparent 100%); }
-.helios-orb { position: fixed; border-radius: 50%; pointer-events: none; filter: blur(2px); z-index: -1; }
-@keyframes heliosBgShift { 0% { filter: hue-rotate(0deg); transform: scale(1); } 50% { filter: hue-rotate(12deg); transform: scale(1.035); } 100% { filter: hue-rotate(-8deg); transform: scale(1); } }
-@keyframes heliosGrid { from { background-position: 0 0, 0 0; } to { background-position: 0 56px, 56px 0; } }
-@keyframes heliosDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(35px,-28px,0) scale(1.12); } }
-@keyframes heliosGlowPulse { 0%,100% { opacity:.35; box-shadow: 0 0 25px rgba(34,211,238,.12); } 50% { opacity:.8; box-shadow: 0 0 70px rgba(34,211,238,.22); } }
-.helios-app > * { position: relative; z-index: 1; }
-.recharts-cartesian-axis-tick-value { fill: #8fb0c2 !important; font-family: "Manrope", sans-serif; font-size: 12px; }
-.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line { stroke: rgba(143,176,194,.22) !important; }
-.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line { stroke: rgba(143,176,194,.12) !important; }
-.recharts-legend-item-text { color: #b8d0df !important; }
-.recharts-default-tooltip { background: rgba(5,18,31,.96) !important; border: 1px solid rgba(103,232,249,.18) !important; border-radius: 12px !important; box-shadow: 0 15px 40px rgba(0,0,0,.35) !important; }
-
-.helios-card { animation: heliosRise .55s ease both; transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease; }
-.helios-card:hover { transform: translateY(-5px); border-color: rgba(34,211,238,.34) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25), 0 0 30px rgba(34,211,238,.07) !important; }
-
-.helios-card { animation: heliosRise .55s ease both; transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease; }
-.helios-card:hover { transform: translateY(-5px); border-color: rgba(34,211,238,.34) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25), 0 0 30px rgba(34,211,238,.07) !important; }
-.helios-energy { animation: heliosPulse 2.4s ease-in-out infinite; }
-.helios-app h1, .helios-app h2, .helios-app h3, .helios-app strong { font-family: "Space Grotesk", "Manrope", sans-serif; letter-spacing: -0.025em; }
-.helios-app p, .helios-app span, .helios-app button, .helios-app input, .helios-app td, .helios-app th { font-family: "Manrope", sans-serif; }
-
-`}</style>
+      <div style={styles.authPage}>
         <div style={styles.authLoadingCard}>
           <div style={styles.authLogoMark}>
             ☀
@@ -2511,46 +2479,7 @@ button, input { font-family: inherit; }
 
   return (
 
-    <div className="helios-glow" style={styles.app}><style>{`
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
-* { box-sizing: border-box; }
-html, body, #root { margin: 0; min-height: 100%; background: #050b16; }
-body { font-family: "Manrope", sans-serif; overflow-x: hidden; }
-button, input { font-family: inherit; }
-.helios-glow { position: relative; overflow: hidden; }
-.helios-glow::before { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; background: radial-gradient(circle, rgba(34,211,238,.16), transparent 68%); top: -180px; right: -120px; pointer-events: none; animation: heliosFloat 8s ease-in-out infinite; }
-.helios-glow::after { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,.12), transparent 68%); bottom: -180px; left: -120px; pointer-events: none; animation: heliosFloat 10s ease-in-out infinite reverse; }
-@keyframes heliosFloat { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(20px,18px,0) scale(1.08); } }
-@keyframes heliosPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,.35); } 50% { box-shadow: 0 0 0 9px rgba(34,211,238,0); } }
-@keyframes heliosRise { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
-@keyframes heliosShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-.helios-app { position: relative; min-height: 100vh; isolation: isolate; overflow: hidden; }
-.helios-app::before { content: ""; position: fixed; inset: 0; z-index: -3; pointer-events: none; background: radial-gradient(circle at 15% 20%, rgba(34,211,238,.12), transparent 26%), radial-gradient(circle at 82% 12%, rgba(59,130,246,.12), transparent 24%), radial-gradient(circle at 55% 85%, rgba(16,185,129,.07), transparent 28%), #050c16; animation: heliosBgShift 14s ease-in-out infinite alternate; }
-.helios-app::after { content: ""; position: fixed; inset: -30%; z-index: -2; pointer-events: none; opacity: .28; background-image: linear-gradient(rgba(72,211,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(72,211,255,.10) 1px, transparent 1px); background-size: 56px 56px; transform: perspective(700px) rotateX(62deg) translateY(18%); transform-origin: center; animation: heliosGrid 18s linear infinite; mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 75%, transparent 100%); }
-.helios-orb { position: fixed; border-radius: 50%; pointer-events: none; filter: blur(2px); z-index: -1; }
-@keyframes heliosBgShift { 0% { filter: hue-rotate(0deg); transform: scale(1); } 50% { filter: hue-rotate(12deg); transform: scale(1.035); } 100% { filter: hue-rotate(-8deg); transform: scale(1); } }
-@keyframes heliosGrid { from { background-position: 0 0, 0 0; } to { background-position: 0 56px, 56px 0; } }
-@keyframes heliosDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(35px,-28px,0) scale(1.12); } }
-@keyframes heliosGlowPulse { 0%,100% { opacity:.35; box-shadow: 0 0 25px rgba(34,211,238,.12); } 50% { opacity:.8; box-shadow: 0 0 70px rgba(34,211,238,.22); } }
-.helios-app > * { position: relative; z-index: 1; }
-.recharts-cartesian-axis-tick-value { fill: #8fb0c2 !important; font-family: "Manrope", sans-serif; font-size: 12px; }
-.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line { stroke: rgba(143,176,194,.22) !important; }
-.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line { stroke: rgba(143,176,194,.12) !important; }
-.recharts-legend-item-text { color: #b8d0df !important; }
-.recharts-default-tooltip { background: rgba(5,18,31,.96) !important; border: 1px solid rgba(103,232,249,.18) !important; border-radius: 12px !important; box-shadow: 0 15px 40px rgba(0,0,0,.35) !important; }
-
-.helios-card { animation: heliosRise .55s ease both; transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease; }
-.helios-card:hover { transform: translateY(-5px); border-color: rgba(34,211,238,.34) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25), 0 0 30px rgba(34,211,238,.07) !important; }
-
-.helios-card { animation: heliosRise .55s ease both; transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease; }
-.helios-card:hover { transform: translateY(-5px); border-color: rgba(34,211,238,.34) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25), 0 0 30px rgba(34,211,238,.07) !important; }
-.helios-energy { animation: heliosPulse 2.4s ease-in-out infinite; }
-.helios-app h1, .helios-app h2, .helios-app h3, .helios-app strong { font-family: "Space Grotesk", "Manrope", sans-serif; letter-spacing: -0.025em; }
-.helios-app p, .helios-app span, .helios-app button, .helios-app input, .helios-app td, .helios-app th { font-family: "Manrope", sans-serif; }
-
-`}</style>
-      <div className="helios-orb" style={{width: 280, height: 280, top: "8vh", right: "-70px", background: "radial-gradient(circle, rgba(34,211,238,.20), transparent 68%)", animation: "heliosDrift 11s ease-in-out infinite"}} />
-      <div className="helios-orb" style={{width: 220, height: 220, bottom: "12vh", left: "-60px", background: "radial-gradient(circle, rgba(59,130,246,.18), transparent 68%)", animation: "heliosDrift 14s ease-in-out infinite reverse"}} />
+    <div style={styles.app}>
 
       {/* ================================================
           HEADER
@@ -2602,7 +2531,7 @@ button, input { font-family: inherit; }
 
                 background:
                   wsStatus === "Live"
-                    ? "#34d399"
+                    ? "#22c55e"
                     : "#f59e0b",
               }}
             />
@@ -2927,7 +2856,7 @@ button, input { font-family: inherit; }
                       type="monotone"
                       dataKey="battery"
                       name="Battery %"
-                      stroke="#34d399"
+                      stroke="#22c55e"
                       strokeWidth={3}
                       dot={false}
                     />
@@ -3850,7 +3779,7 @@ button, input { font-family: inherit; }
                       type="monotone"
                       dataKey="battery"
                       name="Battery %"
-                      stroke="#34d399"
+                      stroke="#22c55e"
                       strokeWidth={3}
                       dot={false}
                     />
@@ -4279,7 +4208,7 @@ button, input { font-family: inherit; }
                       <span
                         style={{
                           ...styles.graphLegendSwatch,
-                          background: "#22d3ee",
+                          background: "#2563eb",
                         }}
                       />
                       Available connection
@@ -4293,7 +4222,7 @@ button, input { font-family: inherit; }
                       <span
                         style={{
                           ...styles.graphLegendSwatch,
-                          background: "#34d399",
+                          background: "#22c55e",
                         }}
                       />
                       Dijkstra shortest path
@@ -4341,7 +4270,7 @@ button, input { font-family: inherit; }
                       >
                         <path
                           d="M 0 0 L 10 5 L 0 10 z"
-                          fill="#34d399"
+                          fill="#22c55e"
                         />
                       </marker>
                     </defs>
@@ -4370,7 +4299,7 @@ button, input { font-family: inherit; }
                             y2={to.y}
                             stroke={
                               highlighted
-                                ? "#34d399"
+                                ? "#22c55e"
                                 : "#94a3b8"
                             }
                             strokeWidth={
@@ -4393,11 +4322,11 @@ button, input { font-family: inherit; }
                             width="84"
                             height="46"
                             rx="10"
-                            fill="rgba(255,255,255,0.045)"
+                            fill="#ffffff"
                             stroke={
                               highlighted
                                 ? "#86efac"
-                                : "rgba(148,163,184,0.16)"
+                                : "#e2e8f0"
                             }
                             strokeWidth="1.5"
                           />
@@ -4410,8 +4339,8 @@ button, input { font-family: inherit; }
                             fontWeight="800"
                             fill={
                               highlighted
-                                ? "#34d399"
-                                : "#c7d2e1"
+                                ? "#15803d"
+                                : "#334155"
                             }
                           >
                             {edge.energy} kWh
@@ -4423,7 +4352,7 @@ button, input { font-family: inherit; }
                             textAnchor="middle"
                             fontSize="10"
                             fontWeight="600"
-                            fill="#8ea0b8"
+                            fill="#64748b"
                           >
                             {edge.distance} km
                           </text>
@@ -4451,12 +4380,12 @@ button, input { font-family: inherit; }
 
                       const nodeFill =
                         isStart
-                          ? "#22d3ee"
+                          ? "#2563eb"
                           : isDestination
                             ? "#f97316"
                             : isOnPath
-                              ? "#34d399"
-                              : "#06101d";
+                              ? "#22c55e"
+                              : "#0f172a";
 
                       return (
                         <g
@@ -4467,7 +4396,7 @@ button, input { font-family: inherit; }
                             cy={position.y}
                             r="34"
                             fill={nodeFill}
-                            stroke="rgba(255,255,255,0.045)"
+                            stroke="#ffffff"
                             strokeWidth="5"
                           />
 
@@ -4479,7 +4408,7 @@ button, input { font-family: inherit; }
                             stroke={
                               isOnPath
                                 ? "#86efac"
-                                : "#94a3b8"
+                                : "#cbd5e1"
                             }
                             strokeWidth="2"
                             opacity={
@@ -4493,7 +4422,7 @@ button, input { font-family: inherit; }
                             textAnchor="middle"
                             fontSize="12"
                             fontWeight="800"
-                            fill="rgba(255,255,255,0.045)"
+                            fill="#ffffff"
                           >
                             {node === "Solar Plant"
                               ? "SOLAR"
@@ -4506,7 +4435,7 @@ button, input { font-family: inherit; }
                             textAnchor="middle"
                             fontSize="12"
                             fontWeight="800"
-                            fill="#06101d"
+                            fill="#0f172a"
                           >
                             {node}
                           </text>
@@ -4518,7 +4447,7 @@ button, input { font-family: inherit; }
                               textAnchor="middle"
                               fontSize="10"
                               fontWeight="800"
-                              fill="#22d3ee"
+                              fill="#2563eb"
                             >
                               START
                             </text>
@@ -4955,156 +4884,1871 @@ function ResultRow({
 // =====================================================
 
 const styles = {
+
   app: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 12% 12%, rgba(34,211,238,.13), transparent 25%), radial-gradient(circle at 88% 20%, rgba(59,130,246,.12), transparent 25%), radial-gradient(circle at 50% 85%, rgba(16,185,129,.08), transparent 30%), linear-gradient(180deg,#04101d 0%,#061625 48%,#071522 100%)",
-    color: "#e8f1f7",
-    fontFamily: "Space Grotesk, Manrope, ui-sans-serif, system-ui, sans-serif",
+
+    background:
+      "#f8fafc",
+
+    color:
+      "#0f172a",
+
+    fontFamily:
+      "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
+
 
   authPage: {
-    minHeight: "100vh",
-    background: "radial-gradient(circle at 15% 20%, rgba(14,165,233,.24), transparent 32%), radial-gradient(circle at 85% 80%, rgba(34,197,94,.16), transparent 30%), linear-gradient(135deg, #04101d, #0b1f35 55%, #0b3a52)",
-    display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 20px", boxSizing: "border-box",
+    minHeight:
+      "100vh",
+
+    background:
+      "linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%)",
+
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    justifyContent:
+      "center",
+
+    padding:
+      "30px 20px",
+
+    boxSizing:
+      "border-box",
   },
-  authPanel: { width: "100%", maxWidth: "480px" },
-  authLoadingCard: { width: "100%", maxWidth: "420px", background: "rgba(255,255,255,.96)", border: "1px solid rgba(255,255,255,.5)", borderRadius: "28px", padding: "44px", textAlign: "center", boxShadow: "0 30px 90px rgba(0,0,0,.35)", boxSizing: "border-box" },
-  authBrand: { display: "flex", alignItems: "center", gap: "14px", color: "#fff", marginBottom: "18px", padding: "0 6px" },
-  authLogoMark: { width: "54px", height: "54px", borderRadius: "18px", background: "linear-gradient(135deg,#fbbf24,#22c55e)", color: "#07111f", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", fontWeight: 900, flexShrink: 0, boxShadow: "0 12px 30px rgba(34,197,94,.2)" },
-  authBrandTitle: { margin: 0, fontSize: "27px", fontWeight: 900, letterSpacing: "-.5px" },
-  authBrandText: { margin: "4px 0 0", color: "rgba(255,255,255,.68)", fontSize: "13px" },
-  authCard: { background: "rgba(255,255,255,.97)", border: "1px solid rgba(255,255,255,.65)", borderRadius: "28px", padding: "34px", boxShadow: "0 30px 90px rgba(0,0,0,.35)", boxSizing: "border-box" },
-  authCardHeader: { marginBottom: "24px" },
-  authTitle: { margin: 0, fontSize: "30px", fontWeight: 900, color: "#07111f", letterSpacing: "-.7px" },
-  authSubtitle: { margin: "8px 0 0", color: "#8ea0b8", lineHeight: 1.6 },
-  authForm: { display: "grid", gap: "16px" },
-  authLabel: { display: "grid", gap: "8px", color: "#c7d2e1", fontSize: "13px", fontWeight: 800 },
-  authInput: { width: "100%", boxSizing: "border-box", padding: "14px 15px", border: "1px solid #d5e0e8", borderRadius: "14px", outline: "none", fontSize: "15px", color: "#07111f", background: "#f8fbfd" },
-  authSubmitButton: { border: "none", borderRadius: "14px", padding: "14px 18px", background: "linear-gradient(135deg,#0ea5e9,#06b6d4)", color: "#fff", fontWeight: 900, fontSize: "15px", cursor: "pointer", marginTop: "4px", boxShadow: "0 12px 28px rgba(14,165,233,.25)" },
-  authSwitch: { marginTop: "22px", paddingTop: "20px", borderTop: "1px solid #e5edf2", display: "flex", justifyContent: "center", gap: "7px", flexWrap: "wrap", color: "#8ea0b8", fontSize: "14px" },
-  authSwitchButton: { border: "none", background: "transparent", color: "#0284c7", fontWeight: 900, cursor: "pointer", padding: 0 },
-  authError: { background: "#fff1f2", color: "#be123c", border: "1px solid #fecdd3", borderRadius: "12px", padding: "11px 13px", marginBottom: "18px", fontSize: "14px", fontWeight: 700 },
-  authSuccess: { background: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0", borderRadius: "12px", padding: "11px 13px", marginBottom: "18px", fontSize: "14px", fontWeight: 700 },
-  authSpinner: { marginTop: "20px", color: "#0284c7", fontWeight: 800 },
-  authFooter: { textAlign: "center", color: "rgba(255,255,255,.6)", fontSize: "12px", margin: "16px 0 0" },
 
-  header: { position: "relative", background: "linear-gradient(135deg,#06111f 0%,#0b2136 58%,#063b50 100%)", color: "#fff", padding: "22px 6%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "20px", overflow: "hidden" },
-  logo: { margin: 0, fontSize: "29px", fontWeight: 900, letterSpacing: "-.7px", background: "linear-gradient(90deg,#fff,#67e8f9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
-  subtitle: { margin: "5px 0 0", color: "#a9c1d1", fontSize: "13px" },
-  status: { display: "flex", alignItems: "center", gap: "9px", fontWeight: 800, fontSize: "13px", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", padding: "9px 13px", borderRadius: "999px", backdropFilter: "blur(12px)" },
-  statusDot: { width: "9px", height: "9px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 12px currentColor" },
-  headerActions: { display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", justifyContent: "flex-end" },
-  userBadge: { display: "flex", alignItems: "center", gap: "9px" },
-  userAvatar: { width: "38px", height: "38px", borderRadius: "50%", background: "linear-gradient(135deg,#22d3ee,#3b82f6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900 },
-  userInfo: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "120px" },
-  userInfoSpan: { fontSize: "11px", color: "#a9c1d1" },
-  logoutButton: { border: "1px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.07)", color: "#fff", borderRadius: "12px", padding: "9px 13px", cursor: "pointer", fontWeight: 800 },
 
-  nav: { position: "sticky", top: 0, zIndex: 20, background: "rgba(7,17,31,.9)", borderBottom: "1px solid rgba(148,163,184,.15)", padding: "0 6%", display: "flex", gap: "5px", overflowX: "auto", backdropFilter: "blur(18px)" },
-  navButton: { border: "none", borderBottom: "2px solid transparent", background: "transparent", padding: "15px 17px", cursor: "pointer", color: "#9fb5c4", fontWeight: 800, whiteSpace: "nowrap" },
-  activeNavButton: { borderTop: "none", borderRight: "none", borderLeft: "none", borderBottom: "2px solid #22d3ee", background: "rgba(34,211,238,.08)", padding: "15px 17px", cursor: "pointer", color: "#67e8f9", fontWeight: 900, whiteSpace: "nowrap", borderRadius: "10px 10px 0 0" },
+  authPanel: {
+    width:
+      "100%",
 
-  main: { width: "88%", maxWidth: "1450px", margin: "0 auto", padding: "34px 0 48px", color: "#eaf7ff" },
-  sectionHeader: { marginBottom: "24px", padding: "2px 2px" },
-  pageTitle: { margin: 0, fontSize: "clamp(30px,3vw,46px)", fontWeight: 900, letterSpacing: "-1.4px", color: "#f4fbff", textShadow: "0 0 30px rgba(34,211,238,.10)" },
-  muted: { color: "#8caabd", lineHeight: 1.6 },
-  blueLabel: { color: "#67e8f9", fontSize: "11px", fontWeight: 900, letterSpacing: "1.8px", textTransform: "uppercase" },
-  errorBox: { background: "#fff1f2", border: "1px solid #fecdd3", color: "#be123c", padding: "13px 16px", borderRadius: "14px", marginBottom: "18px", fontWeight: 700 },
-  loadingBox: { background: "#ecfeff", border: "1px solid #a5f3fc", color: "#0e7490", padding: "13px 16px", borderRadius: "14px", marginBottom: "18px", fontWeight: 700 },
+    maxWidth:
+      "460px",
+  },
 
-  metricGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: "15px", marginBottom: "22px" },
-  metricCard: { position: "relative", overflow: "hidden", background: "linear-gradient(145deg,rgba(13,35,55,.88),rgba(7,24,40,.76))", border: "1px solid rgba(103,232,249,.16)", borderRadius: "20px", padding: "20px", boxShadow: "0 18px 45px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.035)", backdropFilter: "blur(18px)" },
-  metricLabel: { display: "block", color: "#8fb0c2", fontSize: "12px", fontWeight: 800, marginBottom: "8px", letterSpacing: ".3px" },
-  metricValue: { display: "block", fontSize: "27px", fontWeight: 900, color: "#eafaff", letterSpacing: "-.7px", textShadow: "0 0 18px rgba(103,232,249,.12)" },
 
-  chartGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(390px,1fr))", gap: "18px" },
-  chartCard: { background: "linear-gradient(145deg,rgba(9,28,46,.92),rgba(6,20,34,.82))", border: "1px solid rgba(103,232,249,.14)", borderRadius: "22px", padding: "21px", boxShadow: "0 20px 55px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035)", backdropFilter: "blur(18px)" },
-  chartContainer: { height: "320px", marginTop: "15px" },
-  card: { background: "rgba(8, 22, 38, 0.72)", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "22px", padding: "23px", marginTop: "20px", boxShadow: "0 14px 35px rgba(15,35,50,.06)" },
-  graphCard: { background: "linear-gradient(145deg,rgba(9,30,48,.94),rgba(6,20,34,.88))", border: "1px solid rgba(103,232,249,.15)", borderRadius: "22px", padding: "23px", marginTop: "20px", boxShadow: "0 20px 55px rgba(0,0,0,.28)" },
-  cardHeading: { margin: 0, fontSize: "19px", fontWeight: 900, color: "#eafaff", letterSpacing: "-.3px" },
+  authLoadingCard: {
+    width:
+      "100%",
 
-  comparisonStatusGrid: { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "14px" },
-  comparisonStatusCard: { border: "1px solid rgba(103,232,249,.14)", borderRadius: "16px", padding: "16px", background: "rgba(12,35,54,.72)" },
-  comparisonStatusHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" },
+    maxWidth:
+      "420px",
 
-  systemHealthCard: { background: "rgba(8, 22, 38, 0.72)", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "22px", padding: "23px", marginTop: "20px", boxShadow: "0 14px 35px rgba(15,35,50,.06)" },
-  healthBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "7px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: 900, whiteSpace: "nowrap" },
-  healthHealthy: { background: "#dcfce7", color: "#34d399" },
-  healthAttention: { background: "#fef3c7", color: "#92400e" },
-  healthCritical: { background: "#fee2e2", color: "#991b1b" },
-  healthGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "15px", marginTop: "20px" },
-  healthMetric: { background: "rgba(12,35,54,.76)", border: "1px solid rgba(103,232,249,.13)", borderRadius: "16px", padding: "18px" },
-  healthMetricValue: { display: "block", fontSize: "26px", fontWeight: 900, marginBottom: "9px", color: "#eafaff" },
-  healthProgressTrack: { width: "100%", height: "8px", background: "rgba(148,163,184,.16)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" },
-  healthProgressBar: { height: "100%", background: "linear-gradient(90deg,#22c55e,#06b6d4)", borderRadius: "999px", transition: "width .4s ease" },
-  healthHint: { color: "#708594", fontSize: "12px", lineHeight: 1.5 },
-  serviceHealthSection: { marginTop: "20px", padding: "17px", borderRadius: "16px", background: "rgba(6,24,40,.72)", border: "1px solid rgba(103,232,249,.12)" },
-  serviceHealthTitle: { display: "block", marginTop: "4px", fontSize: "18px", color: "#eaf7ff" },
-  serviceHealthChecking: { color: "#708594", fontSize: "12px", fontWeight: 700 },
-  serviceHealthGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: "10px", marginTop: "14px", marginBottom: "12px" },
-  serviceHealthItem: { display: "flex", alignItems: "flex-start", gap: "10px", padding: "12px", borderRadius: "13px", background: "rgba(13,39,59,.7)", border: "1px solid rgba(103,232,249,.10)" },
-  serviceHealthDot: { color: "#34d399", fontSize: "14px", lineHeight: 1.4 },
-  serviceHealthName: { display: "block", color: "#eaf7ff", fontSize: "13px", fontWeight: 800 },
-  serviceHealthValue: { display: "block", marginTop: "3px", color: "#708594", fontSize: "12px" },
-  serviceHealthError: { marginTop: "10px", padding: "10px 12px", borderRadius: "10px", background: "#fff1f2", border: "1px solid #fecdd3", color: "#991b1b", fontSize: "12px", fontWeight: 600 },
+    background:
+      "#ffffff",
 
-  alertList: { display: "grid", gap: "10px", marginTop: "17px" },
-  alertItem: { display: "flex", flexDirection: "column", gap: "4px", padding: "13px 15px", borderRadius: "13px", border: "1px solid", fontSize: "13px" },
-  alertCritical: { background: "#fff1f2", borderColor: "#fecdd3", color: "#991b1b" },
-  alertWarning: { background: "#fffbeb", borderColor: "#fde68a", color: "#92400e" },
-  alertInfo: { background: "#ecfeff", borderColor: "#a5f3fc", color: "#0e7490" },
-  noAlertBox: { marginTop: "17px", padding: "13px 15px", borderRadius: "13px", background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#34d399", fontWeight: 800, fontSize: "13px" },
+    borderRadius:
+      "24px",
 
-  recommendationCard: { background: "linear-gradient(135deg,rgba(7,37,55,.94),rgba(7,24,40,.86) 58%,rgba(7,44,39,.72))", border: "1px solid #bce7ef", borderRadius: "22px", padding: "23px", marginTop: "20px", boxShadow: "0 14px 35px rgba(14,116,144,.07)" },
-  rowBetween: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", flexWrap: "wrap" },
-  badge: { background: "linear-gradient(135deg,#0284c7,#06b6d4)", color: "#fff", borderRadius: "999px", padding: "7px 12px", fontWeight: 900, fontSize: "12px" },
-  smallMetricGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: "11px", marginTop: "17px" },
-  smallMetric: { background: "rgba(12,35,54,.72)", border: "1px solid rgba(103,232,249,.12)", borderRadius: "14px", padding: "14px", minHeight: "62px" },
-  actionRow: { display: "flex", gap: "11px", flexWrap: "wrap", marginBottom: "18px" },
-  exportActions: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap" },
-  secondaryButton: { border: "1px solid rgba(103,232,249,.18)", background: "rgba(255,255,255,.05)", color: "#bcefff", padding: "10px 14px", borderRadius: "12px", cursor: "pointer", fontWeight: 800 },
-  primaryButton: { border: "none", background: "linear-gradient(135deg,#0284c7,#06b6d4)", color: "#fff", padding: "11px 17px", borderRadius: "12px", cursor: "pointer", fontWeight: 900, boxShadow: "0 9px 20px rgba(2,132,199,.2)" },
-  twoColumn: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: "18px" },
-  resultList: { marginTop: "14px" },
-  resultRow: { display: "flex", justifyContent: "space-between", gap: "20px", padding: "12px 0", borderBottom: "1px solid rgba(103,232,249,.09)" },
+    padding:
+      "42px",
 
-  tableWrapper: { overflowX: "auto", marginTop: "17px", borderRadius: "14px", border: "1px solid rgba(86, 211, 255, 0.16)" },
-  table: { width: "100%", borderCollapse: "collapse" },
-  th: { textAlign: "left", padding: "12px", background: "rgba(12,35,54,.9)", borderBottom: "1px solid rgba(103,232,249,.10)", color: "#8fb0c2" },
-  td: { padding: "12px", borderBottom: "1px solid rgba(86, 211, 255, 0.08)" },
+    textAlign:
+      "center",
 
-  routeList: { display: "grid", gap: "13px" },
-  locationCard: { background: "linear-gradient(145deg,rgba(13,35,55,.88),rgba(7,24,40,.78))", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "18px", padding: "17px", display: "flex", gap: "14px", alignItems: "flex-start", boxShadow: "0 8px 22px rgba(15,35,50,.04)" },
-  locationNumber: { width: "35px", height: "35px", borderRadius: "12px", background: "linear-gradient(135deg,#0284c7,#06b6d4)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 900, flexShrink: 0 },
-  locationTitle: { margin: 0, fontSize: "17px", color: "#eafaff" },
-  progressBackground: { height: "8px", background: "rgba(148,163,184,.16)", borderRadius: "99px", overflow: "hidden", margin: "11px 0 7px" },
-  progressBar: { height: "100%", background: "linear-gradient(90deg,#22c55e,#06b6d4)", borderRadius: "99px" },
+    boxShadow:
+      "0 25px 70px rgba(15, 23, 42, 0.35)",
 
-  graphCanvas: { marginTop: "20px", padding: "17px", background: "rgba(4,18,31,.82)", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "17px" },
-  graphCanvasHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap", marginBottom: "10px" },
-  graphCanvasHint: { display: "block", marginTop: "4px", color: "#708594", fontSize: "12px" },
-  graphLegend: { display: "flex", gap: "13px", flexWrap: "wrap" },
-  graphLegendItem: { display: "flex", alignItems: "center", gap: "6px", color: "#86a8bb", fontSize: "11px", fontWeight: 800 },
-  graphLegendSwatch: { width: "10px", height: "10px", borderRadius: "50%", display: "inline-block" },
-  graphSvgWrapper: { width: "100%", overflowX: "auto", borderRadius: "13px", background: "rgba(5,19,32,.9)" },
-  graphSvg: { width: "100%", minWidth: "620px", height: "auto", display: "block" },
-  graphInstruction: { marginTop: "10px", padding: "10px 12px", borderRadius: "10px", background: "#ecfeff", color: "#0e7490", fontSize: "12px", fontWeight: 800 },
-  graphPreview: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "20px", padding: "17px", background: "rgba(4,18,31,.82)", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "14px" },
-  graphItem: { display: "flex", alignItems: "center", gap: "8px" },
-  graphNode: { background: "#0b1b2b", color: "#fff", padding: "9px 12px", borderRadius: "10px", fontWeight: 800, fontSize: "12px" },
-  graphArrow: { fontSize: "20px", color: "#06b6d4", fontWeight: 900 },
-  resultPre: { marginTop: "14px", background: "#07111f", color: "#c9f7ff", padding: "17px", borderRadius: "13px", overflowX: "auto", fontSize: "12px", lineHeight: 1.6 },
+    boxSizing:
+      "border-box",
+  },
 
-  analyticsSummaryGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "14px", marginBottom: "20px" },
-  analyticsCard: { background: "linear-gradient(145deg,rgba(13,35,55,.88),rgba(7,24,40,.76))", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "18px", padding: "19px", boxShadow: "0 10px 25px rgba(15,35,50,.05)" },
-  analyticsValue: { display: "block", fontSize: "25px", fontWeight: 900, margin: "8px 0 5px", color: "#eaf7ff" },
-  historyTableCard: { background: "rgba(8, 22, 38, 0.72)", border: "1px solid rgba(86, 211, 255, 0.16)", borderRadius: "20px", padding: "22px", marginTop: "20px", boxShadow: "0 20px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035)" },
-  historyTable: { width: "100%", minWidth: "850px", borderCollapse: "collapse", fontSize: "13px" },
-  tableHeader: { textAlign: "left", padding: "12px", background: "rgba(16, 39, 60, 0.78)", color: "#86a8bb", borderBottom: "1px solid rgba(103,232,249,.10)", fontWeight: 900, whiteSpace: "nowrap" },
-  tableCell: { padding: "12px", borderBottom: "1px solid rgba(86, 211, 255, 0.08)", color: "#b8d0df", whiteSpace: "nowrap" },
 
-  footer: { textAlign: "center", padding: "28px", color: "#7192a5", borderTop: "1px solid rgba(103,232,249,.10)", marginTop: "10px", background: "rgba(4,15,27,.58)" },
+  authBrand: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "14px",
+
+    color:
+      "#ffffff",
+
+    marginBottom:
+      "20px",
+
+    padding:
+      "0 8px",
+  },
+
+
+  authLogoMark: {
+    width:
+      "52px",
+
+    height:
+      "52px",
+
+    borderRadius:
+      "16px",
+
+    background:
+      "#ffffff",
+
+    color:
+      "#2563eb",
+
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    justifyContent:
+      "center",
+
+    fontSize:
+      "28px",
+
+    fontWeight:
+      900,
+
+    flexShrink:
+      0,
+  },
+
+
+  authBrandTitle: {
+    margin:
+      0,
+
+    fontSize:
+      "26px",
+
+    fontWeight:
+      900,
+  },
+
+
+  authBrandText: {
+    margin:
+      "4px 0 0",
+
+    opacity:
+      0.78,
+
+    fontSize:
+      "13px",
+  },
+
+
+  authCard: {
+    background:
+      "#ffffff",
+
+    borderRadius:
+      "24px",
+
+    padding:
+      "34px",
+
+    boxShadow:
+      "0 25px 70px rgba(15, 23, 42, 0.35)",
+
+    boxSizing:
+      "border-box",
+  },
+
+
+  authCardHeader: {
+    marginBottom:
+      "24px",
+  },
+
+
+  authTitle: {
+    margin:
+      0,
+
+    fontSize:
+      "28px",
+
+    fontWeight:
+      900,
+
+    color:
+      "#0f172a",
+  },
+
+
+  authSubtitle: {
+    margin:
+      "8px 0 0",
+
+    color:
+      "#64748b",
+
+    lineHeight:
+      1.6,
+  },
+
+
+  authForm: {
+    display:
+      "grid",
+
+    gap:
+      "17px",
+  },
+
+
+  authLabel: {
+    display:
+      "grid",
+
+    gap:
+      "8px",
+
+    color:
+      "#334155",
+
+    fontSize:
+      "14px",
+
+    fontWeight:
+      800,
+  },
+
+
+  authInput: {
+    width:
+      "100%",
+
+    boxSizing:
+      "border-box",
+
+    padding:
+      "13px 14px",
+
+    border:
+      "1px solid #cbd5e1",
+
+    borderRadius:
+      "11px",
+
+    outline:
+      "none",
+
+    fontSize:
+      "15px",
+
+    color:
+      "#0f172a",
+
+    background:
+      "#ffffff",
+  },
+
+
+  authSubmitButton: {
+    border:
+      "none",
+
+    borderRadius:
+      "11px",
+
+    padding:
+      "14px 18px",
+
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    fontWeight:
+      900,
+
+    fontSize:
+      "15px",
+
+    cursor:
+      "pointer",
+
+    marginTop:
+      "4px",
+  },
+
+
+  authSwitch: {
+    marginTop:
+      "22px",
+
+    paddingTop:
+      "20px",
+
+    borderTop:
+      "1px solid #e2e8f0",
+
+    display:
+      "flex",
+
+    justifyContent:
+      "center",
+
+    gap:
+      "7px",
+
+    flexWrap:
+      "wrap",
+
+    color:
+      "#64748b",
+
+    fontSize:
+      "14px",
+  },
+
+
+  authSwitchButton: {
+    border:
+      "none",
+
+    background:
+      "transparent",
+
+    color:
+      "#2563eb",
+
+    fontWeight:
+      900,
+
+    cursor:
+      "pointer",
+
+    padding:
+      0,
+  },
+
+
+  authError: {
+    background:
+      "#fef2f2",
+
+    color:
+      "#b91c1c",
+
+    border:
+      "1px solid #fecaca",
+
+    borderRadius:
+      "10px",
+
+    padding:
+      "11px 13px",
+
+    marginBottom:
+      "18px",
+
+    fontSize:
+      "14px",
+
+    fontWeight:
+      700,
+  },
+
+
+  authSuccess: {
+    background:
+      "#f0fdf4",
+
+    color:
+      "#15803d",
+
+    border:
+      "1px solid #bbf7d0",
+
+    borderRadius:
+      "10px",
+
+    padding:
+      "11px 13px",
+
+    marginBottom:
+      "18px",
+
+    fontSize:
+      "14px",
+
+    fontWeight:
+      700,
+  },
+
+
+  authSpinner: {
+    marginTop:
+      "20px",
+
+    color:
+      "#2563eb",
+
+    fontWeight:
+      800,
+  },
+
+
+  authFooter: {
+    textAlign:
+      "center",
+
+    color:
+      "rgba(255,255,255,0.7)",
+
+    fontSize:
+      "12px",
+
+    margin:
+      "16px 0 0",
+  },
+
+
+  headerActions: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "16px",
+
+    flexWrap:
+      "wrap",
+
+    justifyContent:
+      "flex-end",
+  },
+
+
+  userBadge: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "9px",
+  },
+
+
+  userAvatar: {
+    width:
+      "38px",
+
+    height:
+      "38px",
+
+    borderRadius:
+      "50%",
+
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    justifyContent:
+      "center",
+
+    fontWeight:
+      900,
+  },
+
+
+  userInfo: {
+    display:
+      "flex",
+
+    flexDirection:
+      "column",
+
+    gap:
+      "2px",
+
+    minWidth:
+      "120px",
+  },
+
+
+  userInfoSpan: {
+    fontSize:
+      "11px",
+
+    opacity:
+      0.65,
+  },
+
+
+  logoutButton: {
+    border:
+      "1px solid rgba(255,255,255,0.25)",
+
+    background:
+      "rgba(255,255,255,0.08)",
+
+    color:
+      "#ffffff",
+
+    borderRadius:
+      "9px",
+
+    padding:
+      "9px 13px",
+
+    cursor:
+      "pointer",
+
+    fontWeight:
+      800,
+  },
+
+
+  header: {
+    background:
+      "#0f172a",
+
+    color:
+      "#ffffff",
+
+    padding:
+      "24px 6%",
+
+    display:
+      "flex",
+
+    justifyContent:
+      "space-between",
+
+    alignItems:
+      "center",
+
+    gap:
+      "20px",
+  },
+
+
+  logo: {
+    margin:
+      0,
+
+    fontSize:
+      "30px",
+
+    fontWeight:
+      800,
+  },
+
+
+  subtitle: {
+    margin:
+      "5px 0 0",
+
+    color:
+      "#cbd5e1",
+
+    fontSize:
+      "14px",
+  },
+
+
+  status: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "8px",
+
+    fontWeight:
+      700,
+  },
+
+
+  statusDot: {
+    width:
+      "10px",
+
+    height:
+      "10px",
+
+    borderRadius:
+      "50%",
+
+    display:
+      "inline-block",
+  },
+
+
+  nav: {
+    background:
+      "#ffffff",
+
+    borderBottom:
+      "1px solid #e2e8f0",
+
+    padding:
+      "0 6%",
+
+    display:
+      "flex",
+
+    gap:
+      "8px",
+
+    overflowX:
+      "auto",
+  },
+
+
+  navButton: {
+    border:
+      "none",
+
+    borderBottom:
+      "3px solid transparent",
+
+    background:
+      "transparent",
+
+    padding:
+      "16px 18px",
+
+    cursor:
+      "pointer",
+
+    color:
+      "#64748b",
+
+    fontWeight:
+      700,
+
+    whiteSpace:
+      "nowrap",
+  },
+
+
+  activeNavButton: {
+    borderTop:
+      "none",
+
+    borderRight:
+      "none",
+
+    borderLeft:
+      "none",
+
+    borderBottom:
+      "3px solid #2563eb",
+
+    background:
+      "transparent",
+
+    padding:
+      "16px 18px",
+
+    cursor:
+      "pointer",
+
+    color:
+      "#2563eb",
+
+    fontWeight:
+      800,
+
+    whiteSpace:
+      "nowrap",
+  },
+
+
+  main: {
+    width:
+      "88%",
+
+    maxWidth:
+      "1400px",
+
+    margin:
+      "0 auto",
+
+    padding:
+      "40px 0",
+  },
+
+
+  sectionHeader: {
+    marginBottom:
+      "28px",
+  },
+
+
+  pageTitle: {
+    margin:
+      0,
+
+    fontSize:
+      "30px",
+
+    fontWeight:
+      800,
+  },
+
+
+  muted: {
+    color:
+      "#64748b",
+
+    lineHeight:
+      1.6,
+  },
+
+
+  blueLabel: {
+    color:
+      "#2563eb",
+
+    fontSize:
+      "12px",
+
+    fontWeight:
+      800,
+
+    letterSpacing:
+      "1px",
+  },
+
+
+  errorBox: {
+    background:
+      "#fef2f2",
+
+    border:
+      "1px solid #fecaca",
+
+    color:
+      "#b91c1c",
+
+    padding:
+      "14px 18px",
+
+    borderRadius:
+      "10px",
+
+    marginBottom:
+      "20px",
+
+    fontWeight:
+      600,
+  },
+
+
+  loadingBox: {
+    background:
+      "#eff6ff",
+
+    border:
+      "1px solid #bfdbfe",
+
+    color:
+      "#1d4ed8",
+
+    padding:
+      "14px 18px",
+
+    borderRadius:
+      "10px",
+
+    marginBottom:
+      "20px",
+
+    fontWeight:
+      600,
+  },
+
+
+  metricGrid: {
+    display:
+      "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(200px, 1fr))",
+
+    gap:
+      "18px",
+
+    marginBottom:
+      "24px",
+  },
+
+
+  metricCard: {
+    background:
+      "#ffffff",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "14px",
+
+    padding:
+      "22px",
+
+    boxShadow:
+      "0 4px 14px rgba(15, 23, 42, 0.05)",
+  },
+
+
+  metricLabel: {
+    display:
+      "block",
+
+    color:
+      "#64748b",
+
+    fontSize:
+      "13px",
+
+    fontWeight:
+      700,
+
+    marginBottom:
+      "8px",
+  },
+
+
+  metricValue: {
+    display:
+      "block",
+
+    fontSize:
+      "25px",
+
+    fontWeight:
+      800,
+  },
+
+
+  chartGrid: {
+    display:
+      "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(400px, 1fr))",
+
+    gap:
+      "20px",
+  },
+
+
+  chartCard: {
+    background:
+      "#ffffff",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "14px",
+
+    padding:
+      "20px",
+  },
+
+
+  chartContainer: {
+    height:
+      "320px",
+
+    marginTop:
+      "15px",
+  },
+
+
+  card: {
+    background:
+      "#ffffff",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "14px",
+
+    padding:
+      "24px",
+
+    marginTop:
+      "24px",
+  },
+
+
+  graphCard: {
+    background:
+      "#ffffff",
+
+    border:
+      "1px solid #bfdbfe",
+
+    borderRadius:
+      "16px",
+
+    padding:
+      "24px",
+
+    marginTop:
+      "24px",
+  },
+
+
+  cardHeading: {
+    margin:
+      0,
+
+    fontSize:
+      "20px",
+
+    fontWeight:
+      800,
+  },
+
+
+  comparisonStatusGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "14px",
+  },
+
+  comparisonStatusCard: {
+    border: "1px solid #dbe4f0",
+    borderRadius: "14px",
+    padding: "16px",
+    background: "#f8fafc",
+  },
+
+  comparisonStatusHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "12px",
+  },
+
+  systemHealthCard: {
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "14px",
+    padding: "24px",
+    marginTop: "24px",
+    boxShadow: "0 4px 14px rgba(15, 23, 42, 0.05)",
+  },
+
+
+  healthBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "8px 14px",
+    borderRadius: "999px",
+    fontSize: "13px",
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+
+
+  healthHealthy: {
+    background: "#dcfce7",
+    color: "#166534",
+  },
+
+
+  healthAttention: {
+    background: "#fef3c7",
+    color: "#92400e",
+  },
+
+
+  healthCritical: {
+    background: "#fee2e2",
+    color: "#991b1b",
+  },
+
+
+  healthGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "18px",
+    marginTop: "22px",
+  },
+
+
+  healthMetric: {
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px",
+    padding: "18px",
+  },
+
+
+  healthMetricValue: {
+    display: "block",
+    fontSize: "26px",
+    fontWeight: 800,
+    marginBottom: "10px",
+  },
+
+
+  healthProgressTrack: {
+    width: "100%",
+    height: "9px",
+    background: "#e2e8f0",
+    borderRadius: "999px",
+    overflow: "hidden",
+    marginBottom: "9px",
+  },
+
+
+  healthProgressBar: {
+    height: "100%",
+    background: "#22c55e",
+    borderRadius: "999px",
+    transition: "width 0.4s ease",
+  },
+
+
+  healthHint: {
+    color: "#64748b",
+    fontSize: "12px",
+    lineHeight: 1.5,
+  },
+
+
+  serviceHealthSection: {
+    marginTop: "22px",
+    padding: "18px",
+    borderRadius: "12px",
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+  },
+
+
+  serviceHealthTitle: {
+    display: "block",
+    marginTop: "4px",
+    fontSize: "18px",
+    color: "#0f172a",
+  },
+
+
+  serviceHealthChecking: {
+    color: "#64748b",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+
+
+  serviceHealthGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+    gap: "10px",
+    marginTop: "14px",
+    marginBottom: "12px",
+  },
+
+
+  serviceHealthItem: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "10px",
+    padding: "12px",
+    borderRadius: "10px",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+  },
+
+
+  serviceHealthDot: {
+    color: "#16a34a",
+    fontSize: "14px",
+    lineHeight: 1.4,
+  },
+
+
+  serviceHealthName: {
+    display: "block",
+    color: "#0f172a",
+    fontSize: "13px",
+  },
+
+
+  serviceHealthValue: {
+    display: "block",
+    marginTop: "3px",
+    color: "#64748b",
+    fontSize: "12px",
+  },
+
+
+  serviceHealthError: {
+    marginTop: "10px",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    background: "#fef2f2",
+    border: "1px solid #fecaca",
+    color: "#991b1b",
+    fontSize: "12px",
+    fontWeight: 600,
+  },
+
+
+  alertList: {
+    display: "grid",
+    gap: "10px",
+    marginTop: "18px",
+  },
+
+
+  alertItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+    padding: "13px 15px",
+    borderRadius: "10px",
+    border: "1px solid",
+    fontSize: "13px",
+  },
+
+
+  alertCritical: {
+    background: "#fef2f2",
+    borderColor: "#fecaca",
+    color: "#991b1b",
+  },
+
+
+  alertWarning: {
+    background: "#fffbeb",
+    borderColor: "#fde68a",
+    color: "#92400e",
+  },
+
+
+  alertInfo: {
+    background: "#eff6ff",
+    borderColor: "#bfdbfe",
+    color: "#1d4ed8",
+  },
+
+
+  noAlertBox: {
+    marginTop: "18px",
+    padding: "14px 16px",
+    borderRadius: "10px",
+    background: "#f0fdf4",
+    border: "1px solid #bbf7d0",
+    color: "#166534",
+    fontWeight: 700,
+    fontSize: "13px",
+  },
+
+
+  recommendationCard: {
+    background:
+      "linear-gradient(135deg, #eff6ff, #ffffff)",
+
+    border:
+      "1px solid #bfdbfe",
+
+    borderRadius:
+      "16px",
+
+    padding:
+      "24px",
+
+    marginTop:
+      "24px",
+  },
+
+
+  rowBetween: {
+    display:
+      "flex",
+
+    justifyContent:
+      "space-between",
+
+    alignItems:
+      "flex-start",
+
+    gap:
+      "20px",
+
+    flexWrap:
+      "wrap",
+  },
+
+
+  badge: {
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    borderRadius:
+      "999px",
+
+    padding:
+      "8px 14px",
+
+    fontWeight:
+      800,
+  },
+
+
+  smallMetricGrid: {
+    display:
+      "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(170px, 1fr))",
+
+    gap:
+      "12px",
+
+    marginTop:
+      "18px",
+  },
+
+
+  smallMetric: {
+    background:
+      "#f8fafc",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "10px",
+
+    padding:
+      "15px",
+
+    minHeight:
+      "65px",
+  },
+
+
+  actionRow: {
+    display:
+      "flex",
+
+    gap:
+      "12px",
+
+    flexWrap:
+      "wrap",
+
+    marginBottom:
+      "20px",
+  },
+
+
+  exportActions: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    justifyContent:
+      "flex-end",
+
+    gap:
+      "8px",
+
+    flexWrap:
+      "wrap",
+  },
+
+
+  secondaryButton: {
+    border:
+      "1px solid #cbd5e1",
+
+    background:
+      "#ffffff",
+
+    color:
+      "#1e3a8a",
+
+    padding:
+      "10px 14px",
+
+    borderRadius:
+      "10px",
+
+    cursor:
+      "pointer",
+
+    fontWeight:
+      800,
+  },
+
+
+  primaryButton: {
+    border:
+      "none",
+
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    padding:
+      "12px 18px",
+
+    borderRadius:
+      "10px",
+
+    cursor:
+      "pointer",
+
+    fontWeight:
+      800,
+  },
+
+
+  twoColumn: {
+    display:
+      "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(320px, 1fr))",
+
+    gap:
+      "20px",
+  },
+
+
+  resultList: {
+    marginTop:
+      "15px",
+  },
+
+
+  resultRow: {
+    display:
+      "flex",
+
+    justifyContent:
+      "space-between",
+
+    gap:
+      "20px",
+
+    padding:
+      "13px 0",
+
+    borderBottom:
+      "1px solid #e2e8f0",
+  },
+
+
+  tableWrapper: {
+    overflowX:
+      "auto",
+
+    marginTop:
+      "18px",
+  },
+
+
+  table: {
+    width:
+      "100%",
+
+    borderCollapse:
+      "collapse",
+  },
+
+
+  th: {
+    textAlign:
+      "left",
+
+    padding:
+      "12px",
+
+    background:
+      "#f8fafc",
+
+    borderBottom:
+      "1px solid #e2e8f0",
+  },
+
+
+  td: {
+    padding:
+      "12px",
+
+    borderBottom:
+      "1px solid #e2e8f0",
+  },
+
+
+  routeList: {
+    display:
+      "grid",
+
+    gap:
+      "14px",
+  },
+
+
+  locationCard: {
+    background:
+      "#ffffff",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "14px",
+
+    padding:
+      "18px",
+
+    display:
+      "flex",
+
+    gap:
+      "15px",
+
+    alignItems:
+      "flex-start",
+  },
+
+
+  locationNumber: {
+    width:
+      "36px",
+
+    height:
+      "36px",
+
+    borderRadius:
+      "50%",
+
+    background:
+      "#2563eb",
+
+    color:
+      "#ffffff",
+
+    display:
+      "grid",
+
+    placeItems:
+      "center",
+
+    fontWeight:
+      800,
+
+    flexShrink:
+      0,
+  },
+
+
+  locationTitle: {
+    margin:
+      0,
+
+    fontSize:
+      "18px",
+  },
+
+
+  progressBackground: {
+    height:
+      "9px",
+
+    background:
+      "#e2e8f0",
+
+    borderRadius:
+      "99px",
+
+    overflow:
+      "hidden",
+
+    margin:
+      "12px 0 7px",
+  },
+
+
+  progressBar: {
+    height:
+      "100%",
+
+    background:
+      "#22c55e",
+
+    borderRadius:
+      "99px",
+  },
+
+
+  graphCanvas: {
+    marginTop:
+      "22px",
+
+    padding:
+      "18px",
+
+    background:
+      "#f8fafc",
+
+    border:
+      "1px solid #e2e8f0",
+
+    borderRadius:
+      "14px",
+  },
+
+
+  graphCanvasHeader: {
+    display:
+      "flex",
+
+    justifyContent:
+      "space-between",
+
+    alignItems:
+      "center",
+
+    gap:
+      "16px",
+
+    flexWrap:
+      "wrap",
+
+    marginBottom:
+      "10px",
+  },
+
+
+  graphCanvasHint: {
+    display:
+      "block",
+
+    marginTop:
+      "4px",
+
+    color:
+      "#64748b",
+
+    fontSize:
+      "12px",
+  },
+
+
+  graphLegend: {
+    display:
+      "flex",
+
+    gap:
+      "14px",
+
+    flexWrap:
+      "wrap",
+  },
+
+
+  graphLegendItem: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "6px",
+
+    color:
+      "#475569",
+
+    fontSize:
+      "11px",
+
+    fontWeight:
+      700,
+  },
+
+
+  graphLegendSwatch: {
+    width:
+      "10px",
+
+    height:
+      "10px",
+
+    borderRadius:
+      "50%",
+
+    display:
+      "inline-block",
+  },
+
+
+  graphSvgWrapper: {
+    width:
+      "100%",
+
+    overflowX:
+      "auto",
+
+    borderRadius:
+      "12px",
+
+    background:
+      "#ffffff",
+  },
+
+
+  graphSvg: {
+    width:
+      "100%",
+
+    minWidth:
+      "620px",
+
+    height:
+      "auto",
+
+    display:
+      "block",
+  },
+
+
+  graphInstruction: {
+    marginTop:
+      "10px",
+
+    padding:
+      "10px 12px",
+
+    borderRadius:
+      "9px",
+
+    background:
+      "#eff6ff",
+
+    color:
+      "#1d4ed8",
+
+    fontSize:
+      "12px",
+
+    fontWeight:
+      700,
+  },
+
+
+  graphPreview: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "8px",
+
+    flexWrap:
+      "wrap",
+
+    marginTop:
+      "22px",
+
+    padding:
+      "18px",
+
+    background:
+      "#f8fafc",
+
+    borderRadius:
+      "12px",
+  },
+
+
+  graphItem: {
+    display:
+      "flex",
+
+    alignItems:
+      "center",
+
+    gap:
+      "8px",
+  },
+
+
+  graphNode: {
+    background:
+      "#0f172a",
+
+    color:
+      "#ffffff",
+
+    padding:
+      "10px 13px",
+
+    borderRadius:
+      "9px",
+
+    fontWeight:
+      700,
+
+    fontSize:
+      "13px",
+  },
+
+
+  graphArrow: {
+    fontSize:
+      "22px",
+
+    color:
+      "#2563eb",
+
+    fontWeight:
+      800,
+  },
+
+
+  resultPre: {
+    marginTop:
+      "15px",
+
+    background:
+      "#0f172a",
+
+    color:
+      "#e2e8f0",
+
+    padding:
+      "18px",
+
+    borderRadius:
+      "10px",
+
+    overflowX:
+      "auto",
+
+    fontSize:
+      "13px",
+
+    lineHeight:
+      1.6,
+  },
+
+
+
+  analyticsSummaryGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "16px",
+    marginBottom: "24px",
+  },
+
+
+  analyticsCard: {
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "14px",
+    padding: "20px",
+    boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+  },
+
+
+  analyticsValue: {
+    display: "block",
+    fontSize: "25px",
+    fontWeight: 800,
+    margin: "8px 0 5px",
+  },
+
+
+  historyTableCard: {
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "16px",
+    padding: "24px",
+    marginTop: "24px",
+  },
+
+
+  historyTable: {
+    width: "100%",
+    minWidth: "850px",
+    borderCollapse: "collapse",
+    fontSize: "13px",
+  },
+
+
+  tableHeader: {
+    textAlign: "left",
+    padding: "13px 12px",
+    background: "#f8fafc",
+    color: "#475569",
+    borderBottom: "1px solid #e2e8f0",
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+
+
+  tableCell: {
+    padding: "13px 12px",
+    borderBottom: "1px solid #f1f5f9",
+    color: "#334155",
+    whiteSpace: "nowrap",
+  },
+
+
+  footer: {
+    textAlign:
+      "center",
+
+    padding:
+      "28px",
+
+    color:
+      "#64748b",
+
+    borderTop:
+      "1px solid #e2e8f0",
+
+    marginTop:
+      "20px",
+  },
+
 };
 
 
