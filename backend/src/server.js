@@ -5,28 +5,13 @@ const http = require("http");
 const WebSocket = require("ws");
 const cors = require("cors");
 
-
-// =====================================
-// DATABASE
-// =====================================
-
 const connectDB =
     require("./config/database");
-
-
-// =====================================
-// REDIS
-// =====================================
 
 const {
     redisClient,
     connectRedis
 } = require("./config/redis");
-
-
-// =====================================
-// ROUTES
-// =====================================
 
 const sensorRoutes =
     require("./routes/sensorRoutes");
@@ -37,18 +22,8 @@ const optimizationRoutes =
 const authRoutes =
     require("./routes/authRoutes");
 
-
-// =====================================
-// AUTHENTICATION
-// =====================================
-
 const protect =
     require("./middleware/authMiddleware");
-
-
-// =====================================
-// SECURITY
-// =====================================
 
 const {
     securityHeaders,
@@ -56,11 +31,6 @@ const {
     authRateLimiter,
     deviceRateLimiter
 } = require("./middleware/securityMiddleware");
-
-
-// =====================================
-// ALGORITHMS
-// =====================================
 
 const {
     optimizeRoute
@@ -70,38 +40,29 @@ const {
     graphRouteOptimization
 } = require("./algorithms/graphOptimizer");
 
-
-// =====================================
-// EXPRESS APPLICATION
-// =====================================
-
 const app =
     express();
-
-
-// =====================================
-// HTTP SERVER
-// =====================================
 
 const server =
     http.createServer(app);
 
-
-// =====================================
-// CONNECT MONGODB
-// =====================================
+/*
+============================================================
+DATABASE
+============================================================
+*/
 
 connectDB();
 
-
-// =====================================
-// CONNECT REDIS
-// =====================================
+/*
+============================================================
+REDIS
+============================================================
+*/
 
 connectRedis()
     .catch(
         (error) => {
-
             console.error(
                 "❌ Redis startup warning:",
                 error.message
@@ -110,46 +71,102 @@ connectRedis()
             console.log(
                 "⚠️ Server will continue without Redis."
             );
-
         }
     );
 
-
-// =====================================
-// SECURITY HEADERS
-// =====================================
+/*
+============================================================
+SECURITY HEADERS
+============================================================
+*/
 
 app.use(
     securityHeaders
 );
 
-
-// =====================================
-// GLOBAL RATE LIMITER
-// =====================================
-//
-// Normal API traffic:
-// 100 requests / 15 minutes
-//
-// Sensor routes are excluded here because
-// they have their own IoT-specific limiter.
-//
-// =====================================
+/*
+============================================================
+GLOBAL RATE LIMITING
+============================================================
+*/
 
 app.use(
     globalRateLimiter
 );
 
+/*
+============================================================
+CORS
+============================================================
 
-// =====================================
-// CORS
-// =====================================
+Local development:
+http://localhost:5173
+
+Production:
+Set FRONTEND_URL in Render.
+
+Example:
+
+FRONTEND_URL=https://your-frontend.vercel.app
+
+You can also provide multiple frontend URLs
+separated by commas.
+*/
+
+const configuredFrontendUrls =
+    process.env.FRONTEND_URL
+        ? process.env.FRONTEND_URL
+            .split(",")
+            .map(
+                (url) =>
+                    url.trim()
+            )
+            .filter(Boolean)
+        : [];
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    ...configuredFrontendUrls
+];
 
 app.use(
     cors({
+        origin: (
+            origin,
+            callback
+        ) => {
 
-        origin:
-            "http://localhost:5173",
+            /*
+            Allow requests that do not contain
+            an Origin header, such as Postman
+            or direct backend requests.
+            */
+
+            if (!origin) {
+                return callback(
+                    null,
+                    true
+                );
+            }
+
+            if (
+                allowedOrigins.includes(
+                    origin
+                )
+            ) {
+                return callback(
+                    null,
+                    true
+                );
+            }
+
+            return callback(
+                new Error(
+                    "CORS policy: Origin not allowed."
+                )
+            );
+        },
 
         methods: [
             "GET",
@@ -164,19 +181,14 @@ app.use(
             "Authorization",
             "X-Device-Key"
         ]
-
     })
 );
 
-
-// =====================================
-// JSON BODY LIMIT
-// =====================================
-//
-// Prevent unnecessarily large JSON
-// request bodies.
-//
-// =====================================
+/*
+============================================================
+JSON BODY PARSER
+============================================================
+*/
 
 app.use(
     express.json({
@@ -185,22 +197,21 @@ app.use(
     })
 );
 
-
-// =====================================
-// WEBSOCKET SERVER
-// =====================================
+/*
+============================================================
+WEBSOCKET SERVER
+============================================================
+*/
 
 const wss =
     new WebSocket.Server({
         server
     });
 
-
 app.set(
     "wss",
     wss
 );
-
 
 wss.on(
     "connection",
@@ -210,27 +221,15 @@ wss.on(
             "✅ WebSocket Client Connected"
         );
 
-
-        // =================================
-        // Initial WebSocket Message
-        // =================================
-
         ws.send(
             JSON.stringify({
-
                 type:
                     "connection",
 
                 message:
                     "Connected to HeliosSync WebSocket Server"
-
             })
         );
-
-
-        // =================================
-        // WebSocket Disconnect
-        // =================================
 
         ws.on(
             "close",
@@ -246,10 +245,11 @@ wss.on(
     }
 );
 
-
-// =====================================
-// HOME ROUTE
-// =====================================
+/*
+============================================================
+ROOT ROUTE
+============================================================
+*/
 
 app.get(
     "/",
@@ -288,16 +288,11 @@ app.get(
     }
 );
 
-
-// =====================================
-// AUTHENTICATION ROUTES
-// =====================================
-//
-// Strong authentication rate limit.
-//
-// 10 requests / 15 minutes.
-//
-// =====================================
+/*
+============================================================
+AUTHENTICATION ROUTES
+============================================================
+*/
 
 app.use(
     "/api/auth",
@@ -305,18 +300,11 @@ app.use(
     authRoutes
 );
 
-
-// =====================================
-// SENSOR / IoT ROUTES
-// =====================================
-//
-// Dedicated IoT rate limiter.
-//
-// 1000 requests / 15 minutes.
-//
-// The global limiter skips these routes.
-//
-// =====================================
+/*
+============================================================
+SENSOR ROUTES
+============================================================
+*/
 
 app.use(
     "/api/sensors",
@@ -324,32 +312,22 @@ app.use(
     sensorRoutes
 );
 
-
-// =====================================
-// OPTIMIZATION ROUTES
-// =====================================
-//
-// Protected by JWT inside
-// optimizationRoutes.js.
-//
-// =====================================
+/*
+============================================================
+OPTIMIZATION ROUTES
+============================================================
+*/
 
 app.use(
     "/api/optimize",
     optimizationRoutes
 );
 
-
-// =====================================
-// ROUTE OPTIMIZATION API
-// =====================================
-//
-// POST
-// /api/route/optimize
-//
-// JWT protected.
-//
-// =====================================
+/*
+============================================================
+ROUTE OPTIMIZATION
+============================================================
+*/
 
 app.post(
     "/api/route/optimize",
@@ -359,7 +337,6 @@ app.post(
         try {
 
             const {
-
                 currentBattery =
                     0,
 
@@ -370,11 +347,6 @@ app.post(
                     []
 
             } = req.body;
-
-
-            // =================================
-            // Validate locations
-            // =================================
 
             if (
                 !Array.isArray(
@@ -395,14 +367,8 @@ app.post(
 
             }
 
-
-            // =================================
-            // Calculate battery percentage
-            // =================================
-
             const batteryPercentage =
                 batteryCapacity > 0
-
                     ? (
                         Number(
                             currentBattery
@@ -411,13 +377,7 @@ app.post(
                             batteryCapacity
                         )
                     ) * 100
-
                     : 0;
-
-
-            // =================================
-            // Normalize route data
-            // =================================
 
             const routes =
                 locations.map(
@@ -447,21 +407,11 @@ app.post(
                     }
                 );
 
-
-            // =================================
-            // Run route optimization
-            // =================================
-
             const result =
                 optimizeRoute(
                     routes,
                     batteryPercentage
                 );
-
-
-            // =================================
-            // Response
-            // =================================
 
             res.status(200).json({
 
@@ -482,7 +432,6 @@ app.post(
                 error.message
             );
 
-
             res.status(500).json({
 
                 success:
@@ -498,19 +447,11 @@ app.post(
     }
 );
 
-
-// =====================================
-// GRAPH ROUTE OPTIMIZATION API
-// =====================================
-//
-// POST
-// /api/route/graph
-//
-// JWT protected.
-//
-// Uses Dijkstra shortest-path algorithm.
-//
-// =====================================
+/*
+============================================================
+GRAPH / DIJKSTRA OPTIMIZATION
+============================================================
+*/
 
 app.post(
     "/api/route/graph",
@@ -523,7 +464,6 @@ app.post(
                 graphRouteOptimization(
                     req.body
                 );
-
 
             res.status(200).json({
 
@@ -544,7 +484,6 @@ app.post(
                 error.message
             );
 
-
             res.status(500).json({
 
                 success:
@@ -560,18 +499,11 @@ app.post(
     }
 );
 
-
-// =====================================
-// HEALTH API
-// =====================================
-//
-// GET
-// /api/health
-//
-// Used by the frontend System Health
-// panel.
-//
-// =====================================
+/*
+============================================================
+HEALTH CHECK
+============================================================
+*/
 
 app.get(
     "/api/health",
@@ -613,10 +545,11 @@ app.get(
     }
 );
 
-
-// =====================================
-// 404 ROUTE
-// =====================================
+/*
+============================================================
+404 HANDLER
+============================================================
+*/
 
 app.use(
     (req, res) => {
@@ -634,14 +567,11 @@ app.use(
     }
 );
 
-
-// =====================================
-// GLOBAL ERROR HANDLER
-// =====================================
-//
-// Catches unexpected server errors.
-//
-// =====================================
+/*
+============================================================
+GLOBAL ERROR HANDLER
+============================================================
+*/
 
 app.use(
     (
@@ -656,11 +586,6 @@ app.use(
             error.message
         );
 
-
-        // =================================
-        // If response already started
-        // =================================
-
         if (
             res.headersSent
         ) {
@@ -670,11 +595,6 @@ app.use(
             );
 
         }
-
-
-        // =================================
-        // Generic production-safe response
-        // =================================
 
         res.status(500).json({
 
@@ -689,17 +609,27 @@ app.use(
     }
 );
 
+/*
+============================================================
+SERVER
+============================================================
 
-// =====================================
-// START SERVER
-// =====================================
+Render provides PORT through an environment variable.
+
+0.0.0.0 allows the application to accept
+external connections from Render's infrastructure.
+============================================================
+*/
 
 const PORT =
     process.env.PORT || 5000;
 
+const HOST =
+    process.env.HOST || "0.0.0.0";
 
 server.listen(
     PORT,
+    HOST,
     () => {
 
         console.log(
@@ -711,7 +641,11 @@ server.listen(
         );
 
         console.log(
-            `🌐 http://localhost:${PORT}`
+            `🌐 Server Port: ${PORT}`
+        );
+
+        console.log(
+            `🏠 Host: ${HOST}`
         );
 
         console.log(
@@ -764,7 +698,6 @@ server.listen(
 
         console.log(
             "======================================"
-
         );
 
     }
