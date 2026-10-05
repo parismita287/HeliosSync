@@ -10,7 +10,8 @@ const connectDB =
 
 const {
     redisClient,
-    connectRedis
+    connectRedis,
+    disconnectRedis
 } = require("./config/redis");
 
 const sensorRoutes =
@@ -26,13 +27,6 @@ const protect =
     require("./middleware/authMiddleware");
 
 const {
-    securityHeaders,
-    globalRateLimiter,
-    authRateLimiter,
-    deviceRateLimiter
-} = require("./middleware/securityMiddleware");
-
-const {
     optimizeRoute
 } = require("./algorithms/routeOptimizer");
 
@@ -40,78 +34,61 @@ const {
     graphRouteOptimization
 } = require("./algorithms/graphOptimizer");
 
+const {
+    securityHeaders,
+    globalRateLimiter,
+    authRateLimiter,
+    deviceRateLimiter
+} = require("./middleware/securityMiddleware");
+
+
+// =====================================
+// APP INITIALIZATION
+// =====================================
+
 const app =
     express();
+
+
+// =====================================
+// IMPORTANT FOR RENDER
+// =====================================
+// Render runs the application behind
+// a reverse proxy.
+//
+// This allows Express and
+// express-rate-limit to correctly
+// process X-Forwarded-For.
+//
+// =====================================
+
+app.set(
+    "trust proxy",
+    1
+);
+
 
 const server =
     http.createServer(app);
 
-/*
-============================================================
-DATABASE
-============================================================
-*/
 
-connectDB();
+// =====================================
+// ENVIRONMENT
+// =====================================
 
-/*
-============================================================
-REDIS
-============================================================
-*/
+const PORT =
+    process.env.PORT || 5000;
 
-connectRedis()
-    .catch(
-        (error) => {
-            console.error(
-                "❌ Redis startup warning:",
-                error.message
-            );
+const HOST =
+    process.env.HOST || "0.0.0.0";
 
-            console.log(
-                "⚠️ Server will continue without Redis."
-            );
-        }
-    );
+const NODE_ENV =
+    process.env.NODE_ENV || "development";
 
-/*
-============================================================
-SECURITY HEADERS
-============================================================
-*/
 
-app.use(
-    securityHeaders
-);
-
-/*
-============================================================
-GLOBAL RATE LIMITING
-============================================================
-*/
-
-app.use(
-    globalRateLimiter
-);
-
-/*
-============================================================
-CORS
-============================================================
-
-Local development:
-http://localhost:5173
-
-Production:
-Set FRONTEND_URL in Render.
-
-Example:
-
-FRONTEND_URL=https://your-frontend.vercel.app
-
-You can also provide multiple frontend URLs
-separated by commas.
-*/
+// =====================================
+// FRONTEND CORS CONFIGURATION
+// =====================================
 
 const configuredFrontendUrls =
     process.env.FRONTEND_URL
@@ -124,11 +101,17 @@ const configuredFrontendUrls =
             .filter(Boolean)
         : [];
 
+
 const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     ...configuredFrontendUrls
 ];
+
+
+// =====================================
+// CORS
+// =====================================
 
 app.use(
     cors({
@@ -137,11 +120,13 @@ app.use(
             callback
         ) => {
 
-            /*
-            Allow requests that do not contain
-            an Origin header, such as Postman
-            or direct backend requests.
-            */
+            // Allow requests that do not
+            // contain an Origin header.
+            //
+            // Example:
+            // Postman
+            // curl
+            // server-to-server requests
 
             if (!origin) {
                 return callback(
@@ -149,6 +134,7 @@ app.use(
                     true
                 );
             }
+
 
             if (
                 allowedOrigins.includes(
@@ -161,11 +147,19 @@ app.use(
                 );
             }
 
+
+            console.warn(
+                "Blocked CORS origin:",
+                origin
+            );
+
+
             return callback(
                 new Error(
                     "CORS policy: Origin not allowed."
                 )
             );
+
         },
 
         methods: [
@@ -180,38 +174,57 @@ app.use(
             "Content-Type",
             "Authorization",
             "X-Device-Key"
-        ]
+        ],
+
+        credentials: false
     })
 );
 
-/*
-============================================================
-JSON BODY PARSER
-============================================================
-*/
+
+// =====================================
+// SECURITY HEADERS
+// =====================================
+
+app.use(
+    securityHeaders
+);
+
+
+// =====================================
+// GLOBAL RATE LIMITER
+// =====================================
+
+app.use(
+    globalRateLimiter
+);
+
+
+// =====================================
+// BODY PARSER
+// =====================================
 
 app.use(
     express.json({
-        limit:
-            "100kb"
+        limit: "100kb"
     })
 );
 
-/*
-============================================================
-WEBSOCKET SERVER
-============================================================
-*/
+
+// =====================================
+// WEBSOCKET SERVER
+// =====================================
 
 const wss =
     new WebSocket.Server({
         server
     });
 
+
 app.set(
     "wss",
     wss
 );
+
 
 wss.on(
     "connection",
@@ -220,6 +233,7 @@ wss.on(
         console.log(
             "✅ WebSocket Client Connected"
         );
+
 
         ws.send(
             JSON.stringify({
@@ -230,6 +244,7 @@ wss.on(
                     "Connected to HeliosSync WebSocket Server"
             })
         );
+
 
         ws.on(
             "close",
@@ -242,26 +257,136 @@ wss.on(
             }
         );
 
+
+        ws.on(
+            "error",
+            (error) => {
+
+                console.error(
+                    "WebSocket error:",
+                    error.message
+                );
+
+            }
+        );
+
     }
 );
 
-/*
-============================================================
-ROOT ROUTE
-============================================================
-*/
+
+// =====================================
+// DATABASE CONNECTION
+// =====================================
+
+connectDB();
+
+
+// =====================================
+// REDIS CONFIGURATION
+// =====================================
+//
+// Local development:
+// REDIS_URL may be omitted and the
+// local Redis/Memurai configuration
+// can be used.
+//
+// Render production:
+// If REDIS_URL is not configured,
+// Redis connection is skipped.
+//
+// This prevents repeated:
+// ECONNREFUSED 127.0.0.1:6379
+//
+// =====================================
+
+let redisEnabled =
+    false;
+
+
+const hasRedisUrl =
+    Boolean(
+        process.env.REDIS_URL
+    );
+
+
+const shouldUseRedis =
+    NODE_ENV !== "production" ||
+    hasRedisUrl;
+
+
+if (
+    shouldUseRedis
+) {
+
+    connectRedis()
+        .then(
+            () => {
+
+                redisEnabled =
+                    true;
+
+                console.log(
+                    "✅ Redis connection initialized."
+                );
+
+            }
+        )
+        .catch(
+            (error) => {
+
+                redisEnabled =
+                    false;
+
+                console.warn(
+                    "⚠️ Redis is unavailable."
+                );
+
+                console.warn(
+                    "⚠️ HeliosSync will continue without Redis."
+                );
+
+                console.warn(
+                    "Redis error:",
+                    error.message
+                );
+
+            }
+        );
+
+} else {
+
+    console.log(
+        "ℹ️ REDIS_URL is not configured in production."
+    );
+
+    console.log(
+        "ℹ️ Redis connection skipped."
+    );
+
+    console.log(
+        "ℹ️ The application will continue without Redis."
+    );
+
+}
+
+
+// =====================================
+// HOME ROUTE
+// =====================================
 
 app.get(
     "/",
     (req, res) => {
 
-        res.json({
-
+        res.status(200).json({
             success:
                 true,
 
             message:
                 "HeliosSync Backend is LIVE!",
+
+            environment:
+                NODE_ENV,
 
             websocket:
                 "Enabled",
@@ -272,27 +397,90 @@ app.get(
             apiSecurity:
                 "JWT + IoT Device Key",
 
-            rateLimiting:
-                "Enabled",
+            redis:
+                redisEnabled
+                    ? "Connected"
+                    : "Unavailable / Not Configured"
+        });
 
-            securityHeaders:
-                "Enabled",
+    }
+);
+
+
+// =====================================
+// HEALTH ROUTE
+// =====================================
+//
+// This route is intentionally public.
+//
+// Used by:
+// - Render
+// - Vercel
+// - Browser testing
+// - Monitoring
+//
+// =====================================
+
+app.get(
+    "/api/health",
+    (req, res) => {
+
+        res.status(200).json({
+
+            success:
+                true,
+
+            status:
+                "Healthy",
+
+            database:
+                "Connected",
 
             redis:
-                redisClient.isReady
+                redisEnabled
                     ? "Connected"
-                    : "Disconnected"
+                    : "Unavailable / Not Configured",
+
+            websocket:
+                "Enabled",
+
+            websocketClients:
+                wss.clients.size,
+
+            authentication:
+                "Enabled",
+
+            apiSecurity:
+                "JWT + IoT Device Key",
+
+            environment:
+                NODE_ENV,
+
+            timestamp:
+                new Date()
 
         });
 
     }
 );
 
-/*
-============================================================
-AUTHENTICATION ROUTES
-============================================================
-*/
+
+// =====================================
+// AUTHENTICATION ROUTES
+// =====================================
+//
+// Public:
+// POST /api/auth/register
+// POST /api/auth/login
+//
+// Protected internally:
+// GET /api/auth/me
+// POST /api/auth/logout
+//
+// Authentication routes receive
+// their own stricter rate limiter.
+//
+// =====================================
 
 app.use(
     "/api/auth",
@@ -300,11 +488,28 @@ app.use(
     authRoutes
 );
 
-/*
-============================================================
-SENSOR ROUTES
-============================================================
-*/
+
+// =====================================
+// SENSOR ROUTES
+// =====================================
+//
+// POST /api/sensors
+// -> IoT Device Key
+//
+// GET /api/sensors
+// -> JWT
+//
+// GET /api/sensors/latest
+// -> JWT
+//
+// DELETE /api/sensors
+// -> JWT
+//
+// Sensor requests are generated by
+// the IoT simulator, therefore they
+// use a separate rate limiter.
+//
+// =====================================
 
 app.use(
     "/api/sensors",
@@ -312,22 +517,36 @@ app.use(
     sensorRoutes
 );
 
-/*
-============================================================
-OPTIMIZATION ROUTES
-============================================================
-*/
+
+// =====================================
+// OPTIMIZATION ROUTES
+// =====================================
+//
+// POST /api/optimize/greedy
+// POST /api/optimize/dynamic
+// POST /api/optimize/dp
+//
+// JWT protected inside
+// optimizationRoutes.js
+//
+// =====================================
 
 app.use(
     "/api/optimize",
     optimizationRoutes
 );
 
-/*
-============================================================
-ROUTE OPTIMIZATION
-============================================================
-*/
+
+// =====================================
+// ROUTE OPTIMIZATION API
+// =====================================
+//
+// POST
+// /api/route/optimize
+//
+// JWT protected.
+//
+// =====================================
 
 app.post(
     "/api/route/optimize",
@@ -345,8 +564,8 @@ app.post(
 
                 locations =
                     []
-
             } = req.body;
+
 
             if (
                 !Array.isArray(
@@ -355,7 +574,9 @@ app.post(
                 locations.length === 0
             ) {
 
-                return res.status(400).json({
+                return res.status(
+                    400
+                ).json({
 
                     success:
                         false,
@@ -367,6 +588,7 @@ app.post(
 
             }
 
+
             const batteryPercentage =
                 batteryCapacity > 0
                     ? (
@@ -376,8 +598,10 @@ app.post(
                         Number(
                             batteryCapacity
                         )
-                    ) * 100
+                    ) *
+                    100
                     : 0;
+
 
             const routes =
                 locations.map(
@@ -407,13 +631,17 @@ app.post(
                     }
                 );
 
+
             const result =
                 optimizeRoute(
                     routes,
                     batteryPercentage
                 );
 
-            res.status(200).json({
+
+            return res.status(
+                200
+            ).json({
 
                 success:
                     true,
@@ -432,13 +660,16 @@ app.post(
                 error.message
             );
 
-            res.status(500).json({
+
+            return res.status(
+                500
+            ).json({
 
                 success:
                     false,
 
                 message:
-                    "Route optimization failed."
+                    error.message
 
             });
 
@@ -447,11 +678,19 @@ app.post(
     }
 );
 
-/*
-============================================================
-GRAPH / DIJKSTRA OPTIMIZATION
-============================================================
-*/
+
+// =====================================
+// GRAPH ROUTE OPTIMIZATION API
+// =====================================
+//
+// POST
+// /api/route/graph
+//
+// Uses Dijkstra's algorithm.
+//
+// JWT protected.
+//
+// =====================================
 
 app.post(
     "/api/route/graph",
@@ -465,7 +704,10 @@ app.post(
                     req.body
                 );
 
-            res.status(200).json({
+
+            return res.status(
+                200
+            ).json({
 
                 success:
                     true,
@@ -484,13 +726,16 @@ app.post(
                 error.message
             );
 
-            res.status(500).json({
+
+            return res.status(
+                500
+            ).json({
 
                 success:
                     false,
 
                 message:
-                    "Graph optimization failed."
+                    error.message
 
             });
 
@@ -499,79 +744,36 @@ app.post(
     }
 );
 
-/*
-============================================================
-HEALTH CHECK
-============================================================
-*/
 
-app.get(
-    "/api/health",
-    (req, res) => {
-
-        res.json({
-
-            success:
-                true,
-
-            database:
-                "Connected",
-
-            redis:
-                redisClient.isReady
-                    ? "Connected"
-                    : "Disconnected",
-
-            websocketClients:
-                wss.clients.size,
-
-            authentication:
-                "Enabled",
-
-            apiSecurity:
-                "JWT + IoT Device Key",
-
-            rateLimiting:
-                "Enabled",
-
-            securityHeaders:
-                "Enabled",
-
-            timestamp:
-                new Date()
-
-        });
-
-    }
-);
-
-/*
-============================================================
-404 HANDLER
-============================================================
-*/
+// =====================================
+// 404 HANDLER
+// =====================================
 
 app.use(
     (req, res) => {
 
-        res.status(404).json({
+        return res.status(
+            404
+        ).json({
 
             success:
                 false,
 
             message:
-                "Route not found"
+                "Route not found",
+
+            path:
+                req.originalUrl
 
         });
 
     }
 );
 
-/*
-============================================================
-GLOBAL ERROR HANDLER
-============================================================
-*/
+
+// =====================================
+// GLOBAL ERROR HANDLER
+// =====================================
 
 app.use(
     (
@@ -583,20 +785,34 @@ app.use(
 
         console.error(
             "Unhandled server error:",
-            error.message
+            error
         );
 
+
+        // Handle CORS errors
         if (
-            res.headersSent
+            error.message ===
+            "CORS policy: Origin not allowed."
         ) {
 
-            return next(
-                error
-            );
+            return res.status(
+                403
+            ).json({
+
+                success:
+                    false,
+
+                message:
+                    "CORS policy: Origin not allowed."
+
+            });
 
         }
 
-        res.status(500).json({
+
+        return res.status(
+            500
+        ).json({
 
             success:
                 false,
@@ -609,23 +825,10 @@ app.use(
     }
 );
 
-/*
-============================================================
-SERVER
-============================================================
 
-Render provides PORT through an environment variable.
-
-0.0.0.0 allows the application to accept
-external connections from Render's infrastructure.
-============================================================
-*/
-
-const PORT =
-    process.env.PORT || 5000;
-
-const HOST =
-    process.env.HOST || "0.0.0.0";
+// =====================================
+// START SERVER
+// =====================================
 
 server.listen(
     PORT,
@@ -700,5 +903,131 @@ server.listen(
             "======================================"
         );
 
+    }
+);
+
+
+// =====================================
+// GRACEFUL SHUTDOWN
+// =====================================
+
+const gracefulShutdown =
+    async (
+        signal
+    ) => {
+
+        console.log(
+            `\n${signal} received.`
+        );
+
+        console.log(
+            "🛑 Shutting down HeliosSync..."
+        );
+
+
+        try {
+
+            // Close WebSocket clients
+
+            wss.clients.forEach(
+                (client) => {
+
+                    try {
+
+                        client.close();
+
+                    } catch (error) {
+
+                        console.error(
+                            "WebSocket close error:",
+                            error.message
+                        );
+
+                    }
+
+                }
+            );
+
+
+            // Close WebSocket server
+
+            await new Promise(
+                (
+                    resolve
+                ) => {
+
+                    wss.close(
+                        () => {
+                            resolve();
+                        }
+                    );
+
+                }
+            );
+
+
+            // Close Redis
+
+            await disconnectRedis();
+
+
+            // Close HTTP server
+
+            await new Promise(
+                (
+                    resolve
+                ) => {
+
+                    server.close(
+                        () => {
+                            resolve();
+                        }
+                    );
+
+                }
+            );
+
+
+            console.log(
+                "✅ HeliosSync shutdown complete."
+            );
+
+
+            process.exit(
+                0
+            );
+
+        } catch (error) {
+
+            console.error(
+                "❌ Shutdown error:",
+                error.message
+            );
+
+            process.exit(
+                1
+            );
+
+        }
+
+    };
+
+
+process.on(
+    "SIGTERM",
+    () => {
+        gracefulShutdown(
+            "SIGTERM"
+        );
+    }
+);
+
+
+process.on(
+    "SIGINT",
+    () => {
+        gracefulShutdown(
+            "SIGINT"
+        );
     }
 );
